@@ -678,10 +678,12 @@ const (
 )
 
 // IndexOption is the index options.
-//    KEY_BLOCK_SIZE [=] value
-//  | index_type
-//  | WITH PARSER parser_name
-//  | COMMENT 'string'
+//
+//	  KEY_BLOCK_SIZE [=] value
+//	| index_type
+//	| WITH PARSER parser_name
+//	| COMMENT 'string'
+//
 // See http://dev.mysql.com/doc/refman/5.7/en/create-table.html
 type IndexOption struct {
 	node
@@ -867,7 +869,9 @@ func (n *Constraint) Restore(ctx *format.RestoreCtx) error {
 		ctx.WritePlain(" ")
 		ctx.WriteName(n.Name)
 	}
-
+	if ctx.Flags.HasPrettyFormatFlag() {
+		ctx.WritePlain(" ")
+	}
 	ctx.WritePlain("(")
 	for i, keys := range n.Keys {
 		if i > 0 {
@@ -1059,9 +1063,19 @@ func (n *CreateTableStmt) Restore(ctx *format.RestoreCtx) error {
 	lenConstraints := len(n.Constraints)
 	if lenCols+lenConstraints > 0 {
 		ctx.WritePlain(" (")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("\n")
+		}
+
 		for i, col := range n.Cols {
 			if i > 0 {
 				ctx.WritePlain(",")
+				if ctx.Flags.HasPrettyFormatFlag() {
+					ctx.WritePlain("\n")
+				}
+			}
+			if ctx.Flags.HasPrettyFormatFlag() {
+				ctx.WritePlain("  ")
 			}
 			if err := col.Restore(ctx); err != nil {
 				return errors.Annotatef(err, "An error occurred while splicing CreateTableStmt ColumnDef: [%v]", i)
@@ -1070,10 +1084,19 @@ func (n *CreateTableStmt) Restore(ctx *format.RestoreCtx) error {
 		for i, constraint := range n.Constraints {
 			if i > 0 || lenCols >= 1 {
 				ctx.WritePlain(",")
+				if ctx.Flags.HasPrettyFormatFlag() {
+					ctx.WritePlain("\n")
+				}
+			}
+			if ctx.Flags.HasPrettyFormatFlag() {
+				ctx.WritePlain("  ")
 			}
 			if err := constraint.Restore(ctx); err != nil {
 				return errors.Annotatef(err, "An error occurred while splicing CreateTableStmt Constraints: [%v]", i)
 			}
+		}
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("\n")
 		}
 		ctx.WritePlain(")")
 	}
@@ -1433,6 +1456,9 @@ func (n *CreateViewStmt) Restore(ctx *format.RestoreCtx) error {
 			ctx.WritePlain(" (")
 		} else {
 			ctx.WritePlain(",")
+		}
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("\n")
 		}
 		ctx.WriteName(col.O)
 		if i == len(n.Cols)-1 {
