@@ -342,6 +342,9 @@ func (n *ReferenceDef) Restore(ctx *format.RestoreCtx) error {
 		if err := n.Table.Restore(ctx); err != nil {
 			return errors.Annotate(err, "An error occurred while splicing ReferenceDef")
 		}
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain(" ")
+		}
 	}
 
 	if n.IndexPartSpecifications != nil {
@@ -861,9 +864,16 @@ func (n *Constraint) Restore(ctx *format.RestoreCtx) error {
 			ctx.WriteName(n.Name)
 			ctx.WritePlain(" ")
 		}
-		ctx.WriteKeyWord("FOREIGN KEY ")
-		if n.IfNotExists {
-			ctx.WriteKeyWord("IF NOT EXISTS ")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WriteKeyWord("FOREIGN KEY")
+			if n.IfNotExists {
+				ctx.WriteKeyWord(" IF NOT EXISTS")
+			}
+		} else {
+			ctx.WriteKeyWord("FOREIGN KEY ")
+			if n.IfNotExists {
+				ctx.WriteKeyWord("IF NOT EXISTS ")
+			}
 		}
 	} else if n.Name != "" || n.IsEmptyIndex {
 		ctx.WritePlain(" ")
@@ -2142,8 +2152,12 @@ type TableOption struct {
 func (n *TableOption) Restore(ctx *format.RestoreCtx) error {
 	switch n.Tp {
 	case TableOptionEngine:
-		ctx.WriteKeyWord("ENGINE ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("ENGINE")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		if n.StrValue != "" {
 			ctx.WritePlain(n.StrValue)
 		} else {
@@ -2155,9 +2169,15 @@ func (n *TableOption) Restore(ctx *format.RestoreCtx) error {
 		} else {
 			ctx.WriteKeyWord("DEFAULT ")
 		}
-		ctx.WriteKeyWord("CHARACTER SET ")
+		ctx.WriteKeyWord("CHARACTER SET")
+		if !ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain(" ")
+		}
 		if n.UintValue == TableOptionCharsetWithoutConvertTo {
-			ctx.WriteKeyWord("= ")
+			ctx.WritePlain("=")
+			if !ctx.Flags.HasPrettyFormatFlag() {
+				ctx.WritePlain(" ")
+			}
 		}
 		if n.Default {
 			ctx.WriteKeyWord("DEFAULT")
@@ -2165,8 +2185,12 @@ func (n *TableOption) Restore(ctx *format.RestoreCtx) error {
 			ctx.WriteKeyWord(n.StrValue)
 		}
 	case TableOptionCollate:
-		ctx.WriteKeyWord("DEFAULT COLLATE ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("DEFAULT COLLATE")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WriteKeyWord(n.StrValue)
 	case TableOptionAutoIncrement:
 		if n.BoolValue {
@@ -2176,13 +2200,21 @@ func (n *TableOption) Restore(ctx *format.RestoreCtx) error {
 			})
 			ctx.WritePlain(" ")
 		}
-		ctx.WriteKeyWord("AUTO_INCREMENT ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("AUTO_INCREMENT")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WritePlainf("%d", n.UintValue)
 	case TableOptionAutoIdCache:
 		_ = ctx.WriteWithSpecialComments(tidb.FeatureIDAutoIDCache, func() error {
-			ctx.WriteKeyWord("AUTO_ID_CACHE ")
-			ctx.WritePlain("= ")
+			ctx.WriteKeyWord("AUTO_ID_CACHE")
+			if ctx.Flags.HasPrettyFormatFlag() {
+				ctx.WritePlain("=")
+			} else {
+				ctx.WritePlain(" = ")
+			}
 			ctx.WritePlainf("%d", n.UintValue)
 			return nil
 		})
@@ -2195,54 +2227,102 @@ func (n *TableOption) Restore(ctx *format.RestoreCtx) error {
 			ctx.WritePlain(" ")
 		}
 		_ = ctx.WriteWithSpecialComments(tidb.FeatureIDAutoRandomBase, func() error {
-			ctx.WriteKeyWord("AUTO_RANDOM_BASE ")
-			ctx.WritePlain("= ")
+			ctx.WriteKeyWord("AUTO_RANDOM_BASE")
+			if ctx.Flags.HasPrettyFormatFlag() {
+				ctx.WritePlain("=")
+			} else {
+				ctx.WritePlain(" = ")
+			}
 			ctx.WritePlainf("%d", n.UintValue)
 			return nil
 		})
 	case TableOptionComment:
-		ctx.WriteKeyWord("COMMENT ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("COMMENT")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WriteString(n.StrValue)
 	case TableOptionAvgRowLength:
-		ctx.WriteKeyWord("AVG_ROW_LENGTH ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("AVG_ROW_LENGTH")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WritePlainf("%d", n.UintValue)
 	case TableOptionCheckSum:
-		ctx.WriteKeyWord("CHECKSUM ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("CHECKSUM")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WritePlainf("%d", n.UintValue)
 	case TableOptionCompression:
-		ctx.WriteKeyWord("COMPRESSION ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("COMPRESSION")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WriteString(n.StrValue)
 	case TableOptionConnection:
-		ctx.WriteKeyWord("CONNECTION ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("CONNECTION")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WriteString(n.StrValue)
 	case TableOptionPassword:
-		ctx.WriteKeyWord("PASSWORD ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("PASSWORD")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WriteString(n.StrValue)
 	case TableOptionKeyBlockSize:
-		ctx.WriteKeyWord("KEY_BLOCK_SIZE ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("KEY_BLOCK_SIZE")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WritePlainf("%d", n.UintValue)
 	case TableOptionMaxRows:
-		ctx.WriteKeyWord("MAX_ROWS ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("MAX_ROWS")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WritePlainf("%d", n.UintValue)
 	case TableOptionMinRows:
-		ctx.WriteKeyWord("MIN_ROWS ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("MIN_ROWS")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WritePlainf("%d", n.UintValue)
 	case TableOptionDelayKeyWrite:
-		ctx.WriteKeyWord("DELAY_KEY_WRITE ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("DELAY_KEY_WRITE")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WritePlainf("%d", n.UintValue)
 	case TableOptionRowFormat:
-		ctx.WriteKeyWord("ROW_FORMAT ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("ROW_FORMAT")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		switch n.UintValue {
 		case RowFormatDefault:
 			ctx.WriteKeyWord("DEFAULT")
@@ -2277,13 +2357,21 @@ func (n *TableOption) Restore(ctx *format.RestoreCtx) error {
 		}
 	case TableOptionStatsPersistent:
 		// TODO: not support
-		ctx.WriteKeyWord("STATS_PERSISTENT ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("STATS_PERSISTENT")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WriteKeyWord("DEFAULT")
 		ctx.WritePlain(" /* TableOptionStatsPersistent is not supported */ ")
 	case TableOptionStatsAutoRecalc:
-		ctx.WriteKeyWord("STATS_AUTO_RECALC ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("STATS_AUTO_RECALC")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		if n.Default {
 			ctx.WriteKeyWord("DEFAULT")
 		} else {
@@ -2303,55 +2391,101 @@ func (n *TableOption) Restore(ctx *format.RestoreCtx) error {
 		})
 	case TableOptionPackKeys:
 		// TODO: not support
-		ctx.WriteKeyWord("PACK_KEYS ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("PACK_KEYS")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WriteKeyWord("DEFAULT")
 		ctx.WritePlain(" /* TableOptionPackKeys is not supported */ ")
 	case TableOptionTablespace:
-		ctx.WriteKeyWord("TABLESPACE ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("TABLESPACE")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WriteName(n.StrValue)
 	case TableOptionNodegroup:
-		ctx.WriteKeyWord("NODEGROUP ")
-		ctx.WritePlainf("= %d", n.UintValue)
+		ctx.WriteKeyWord("NODEGROUP")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
+		ctx.WritePlainf("%d", n.UintValue)
 	case TableOptionDataDirectory:
-		ctx.WriteKeyWord("DATA DIRECTORY ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("DATA DIRECTORY")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WriteString(n.StrValue)
 	case TableOptionIndexDirectory:
-		ctx.WriteKeyWord("INDEX DIRECTORY ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("INDEX DIRECTORY")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WriteString(n.StrValue)
 	case TableOptionStorageMedia:
 		ctx.WriteKeyWord("STORAGE ")
 		ctx.WriteKeyWord(n.StrValue)
 	case TableOptionStatsSamplePages:
-		ctx.WriteKeyWord("STATS_SAMPLE_PAGES ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("STATS_SAMPLE_PAGES")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		if n.Default {
 			ctx.WriteKeyWord("DEFAULT")
 		} else {
 			ctx.WritePlainf("%d", n.UintValue)
 		}
 	case TableOptionSecondaryEngine:
-		ctx.WriteKeyWord("SECONDARY_ENGINE ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("SECONDARY_ENGINE")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WriteString(n.StrValue)
 	case TableOptionSecondaryEngineNull:
-		ctx.WriteKeyWord("SECONDARY_ENGINE ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("SECONDARY_ENGINE")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WriteKeyWord("NULL")
 	case TableOptionInsertMethod:
-		ctx.WriteKeyWord("INSERT_METHOD ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("INSERT_METHOD")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WriteKeyWord(n.StrValue)
 	case TableOptionTableCheckSum:
-		ctx.WriteKeyWord("TABLE_CHECKSUM ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("TABLE_CHECKSUM")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WritePlainf("%d", n.UintValue)
 	case TableOptionUnion:
-		ctx.WriteKeyWord("UNION ")
-		ctx.WritePlain("= (")
+		ctx.WriteKeyWord("UNION")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
+		ctx.WritePlain("(")
 		for i, tableName := range n.TableNames {
 			if i != 0 {
 				ctx.WritePlain(",")
@@ -2360,8 +2494,12 @@ func (n *TableOption) Restore(ctx *format.RestoreCtx) error {
 		}
 		ctx.WritePlain(")")
 	case TableOptionEncryption:
-		ctx.WriteKeyWord("ENCRYPTION ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("ENCRYPTION")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		ctx.WriteString(n.StrValue)
 	case TableOptionPlacementPolicy:
 		if ctx.Flags.HasSkipPlacementRuleForRestoreFlag() {
@@ -2374,40 +2512,60 @@ func (n *TableOption) Restore(ctx *format.RestoreCtx) error {
 		}
 		return placementOpt.Restore(ctx)
 	case TableOptionStatsBuckets:
-		ctx.WriteKeyWord("STATS_BUCKETS ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("STATS_BUCKETS")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		if n.Default {
 			ctx.WriteKeyWord("DEFAULT")
 		} else {
 			ctx.WritePlainf("%d", n.UintValue)
 		}
 	case TableOptionStatsTopN:
-		ctx.WriteKeyWord("STATS_TOPN ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("STATS_TOPN")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		if n.Default {
 			ctx.WriteKeyWord("DEFAULT")
 		} else {
 			ctx.WritePlainf("%d", n.UintValue)
 		}
 	case TableOptionStatsSampleRate:
-		ctx.WriteKeyWord("STATS_SAMPLE_RATE ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("STATS_SAMPLE_RATE")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		if n.Default {
 			ctx.WriteKeyWord("DEFAULT")
 		} else {
 			ctx.WritePlainf("%v", n.Value.GetValue())
 		}
 	case TableOptionStatsColsChoice:
-		ctx.WriteKeyWord("STATS_COL_CHOICE ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("STATS_COL_CHOICE")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		if n.Default {
 			ctx.WriteKeyWord("DEFAULT")
 		} else {
 			ctx.WriteString(n.StrValue)
 		}
 	case TableOptionStatsColList:
-		ctx.WriteKeyWord("STATS_COL_LIST ")
-		ctx.WritePlain("= ")
+		ctx.WriteKeyWord("STATS_COL_LIST")
+		if ctx.Flags.HasPrettyFormatFlag() {
+			ctx.WritePlain("=")
+		} else {
+			ctx.WritePlain(" = ")
+		}
 		if n.Default {
 			ctx.WriteKeyWord("DEFAULT")
 		} else {
