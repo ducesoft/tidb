@@ -2335,6 +2335,7 @@ func TestDDL(t *testing.T) {
 		{"create table t (a int default (((rand()))))", true, "CREATE TABLE `t` (`a` INT DEFAULT RAND())"},
 		{"create table t (a int default (((rand(1)))))", true, "CREATE TABLE `t` (`a` INT DEFAULT RAND(1))"},
 		{"create table t (a int default replace(uuid(), '-', ''))", true, "CREATE TABLE `t` (`a` INT DEFAULT REPLACE(UUID(), _UTF8MB4'-', _UTF8MB4''))"},
+		{"CREATE TABLE t( a varchar(60) CHARACTER SET ucs2 COLLATE ucs2_general_ci);", true, "CREATE TABLE `t` (`a` VARCHAR(60) CHARACTER SET UCS2 COLLATE ucs2_general_ci)"},
 
 		{"CREATE", false, ""},
 		{"CREATE TABLE", false, ""},

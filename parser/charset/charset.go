@@ -152,8 +152,11 @@ func GetCharsetInfo(cs string) (*Charset, error) {
 		return c, nil
 	}
 
+	// TiDB unsupported charset, but MySQL supported.
 	if c, ok := charsets[strings.ToLower(cs)]; ok {
-		return c, errors.Errorf("Unsupported charset %s", cs)
+		// TiDB doesn't support all the charsets in MySQL.
+		// But we can use the charset info from MySQL.
+		return c, nil
 	}
 
 	return nil, errors.Errorf("Unknown charset %s", cs)
