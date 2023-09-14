@@ -230,6 +230,8 @@ const (
 	CharsetUTF8 = "utf8"
 	// CharsetUTF8MB4 represents 4 bytes utf8, which works the same way as utf8 in Go.
 	CharsetUTF8MB4 = "utf8mb4"
+	// CharsetUTF8MB3 represents 3 bytes utf8. Added by Bytebase.
+	CharsetUTF8MB3 = "utf8mb3"
 	//revive:disable:exported
 	CharsetARMSCII8 = "armscii8"
 	CharsetBig5     = "big5"
@@ -312,6 +314,7 @@ var charsets = map[string]*Charset{
 	CharsetUTF32:    {Name: CharsetUTF32, Maxlen: 4, DefaultCollation: "utf32_general_ci", Desc: "UTF-32 Unicode", Collations: make(map[string]*Collation)},
 	CharsetUTF8:     {Name: CharsetUTF8, Maxlen: 3, DefaultCollation: "utf8_general_ci", Desc: "UTF-8 Unicode", Collations: make(map[string]*Collation)},
 	CharsetUTF8MB4:  {Name: CharsetUTF8MB4, Maxlen: 4, DefaultCollation: "utf8mb4_0900_ai_ci", Desc: "UTF-8 Unicode", Collations: make(map[string]*Collation)},
+	CharsetUTF8MB3:  {Name: CharsetUTF8MB3, Maxlen: 3, DefaultCollation: "utf8mb3_general_ci", Desc: "UTF-8 Unicode", Collations: make(map[string]*Collation)},
 }
 
 var collations = []*Collation{
