@@ -2327,6 +2327,7 @@ func TestBuiltinFuncAsIdentifier(t *testing.T) {
 
 func TestDDL(t *testing.T) {
 	table := []testCase{
+		{"CREATE TABLE t( a varchar(60)) DEFAULT CHARSET=utf8mb3", true, "CREATE TABLE `t` (`a` VARCHAR(60)) DEFAULT CHARACTER SET = UTF8MB3"},
 		// For column default expression
 		{"create table t (a int default rand())", true, "CREATE TABLE `t` (`a` INT DEFAULT RAND())"},
 		{"create table t (a int default rand(1))", true, "CREATE TABLE `t` (`a` INT DEFAULT RAND(1))"},
