@@ -646,8 +646,14 @@ func appendBinaryObject(buf []byte, x map[string]interface{}) ([]byte, error) {
 	for key, val := range x {
 		fields = append(fields, field{key: key, val: val})
 	}
-	slices.SortFunc(fields, func(i, j field) bool {
-		return i.key < j.key
+	slices.SortFunc(fields, func(i, j field) int {
+		f := 0
+		if i.key < j.key {
+			f = -1
+		} else if i.key > j.key {
+			f = 1
+		}
+		return f
 	})
 	for i, field := range fields {
 		keyEntryOff := keyEntryBegin + i*keyEntrySize

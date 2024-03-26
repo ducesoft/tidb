@@ -208,8 +208,9 @@ func quoteString(s string) string {
 }
 
 // Extract receives several path expressions as arguments, matches them in bj, and returns:
-//  ret: target JSON matched any path expressions. maybe autowrapped as an array.
-//  found: true if any path expressions matched.
+//
+//	ret: target JSON matched any path expressions. maybe autowrapped as an array.
+//	found: true if any path expressions matched.
 func (bj BinaryJSON) Extract(pathExprList []PathExpression) (ret BinaryJSON, found bool) {
 	buf := make([]BinaryJSON, 0, 1)
 	for _, pathExpr := range pathExprList {
@@ -859,8 +860,9 @@ func mergePatchBinary(target, patch *BinaryJSON) (result *BinaryJSON, err error)
 		for key := range keyValMap {
 			keys = append(keys, []byte(key))
 		}
-		slices.SortFunc(keys, func(i, j []byte) bool {
-			return bytes.Compare(i, j) < 0
+		slices.SortFunc(keys, func(i, j []byte) int {
+
+			return bytes.Compare(i, j)
 		})
 		length = len(keys)
 		values := make([]BinaryJSON, 0, len(keys))
@@ -942,8 +944,8 @@ func mergeBinaryObject(objects []BinaryJSON) BinaryJSON {
 			}
 		}
 	}
-	slices.SortFunc(keys, func(i, j []byte) bool {
-		return bytes.Compare(i, j) < 0
+	slices.SortFunc(keys, func(i, j []byte) int {
+		return bytes.Compare(i, j)
 	})
 	values := make([]BinaryJSON, len(keys))
 	for i, key := range keys {
@@ -1109,7 +1111,9 @@ func (bj BinaryJSON) Search(containType string, search string, escape byte, path
 type extractCallbackFn func(fullpath PathExpression, bj BinaryJSON) (stop bool, err error)
 
 // extractToCallback callback alternative of extractTo
-//     would be more effective when walk through the whole JSON is unnecessary
+//
+//	would be more effective when walk through the whole JSON is unnecessary
+//
 // NOTICE: path [0] & [*] for JSON object other than array is INVALID, which is different from extractTo.
 func (bj BinaryJSON) extractToCallback(pathExpr PathExpression, callbackFn extractCallbackFn, fullpath PathExpression) (stop bool, err error) {
 	if len(pathExpr.legs) == 0 {
