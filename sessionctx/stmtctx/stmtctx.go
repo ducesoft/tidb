@@ -899,15 +899,27 @@ func (sc *StatementContext) CopTasksDetails() *CopTasksDetails {
 	d.AvgProcessTime = sc.mu.execDetails.TimeDetail.ProcessTime / time.Duration(n)
 	d.AvgWaitTime = sc.mu.execDetails.TimeDetail.WaitTime / time.Duration(n)
 
-	slices.SortFunc(sc.mu.allExecDetails, func(i, j *execdetails.ExecDetails) bool {
-		return i.TimeDetail.ProcessTime < j.TimeDetail.ProcessTime
+	slices.SortFunc(sc.mu.allExecDetails, func(i, j *execdetails.ExecDetails) int {
+		f := 0
+		if i.TimeDetail.ProcessTime < j.TimeDetail.ProcessTime {
+			f = -1
+		} else if i.TimeDetail.ProcessTime > j.TimeDetail.ProcessTime {
+			f = 1
+		}
+		return f
 	})
 	d.P90ProcessTime = sc.mu.allExecDetails[n*9/10].TimeDetail.ProcessTime
 	d.MaxProcessTime = sc.mu.allExecDetails[n-1].TimeDetail.ProcessTime
 	d.MaxProcessAddress = sc.mu.allExecDetails[n-1].CalleeAddress
 
-	slices.SortFunc(sc.mu.allExecDetails, func(i, j *execdetails.ExecDetails) bool {
-		return i.TimeDetail.WaitTime < j.TimeDetail.WaitTime
+	slices.SortFunc(sc.mu.allExecDetails, func(i, j *execdetails.ExecDetails) int {
+		f := 0
+		if i.TimeDetail.WaitTime < j.TimeDetail.WaitTime {
+			f = -1
+		} else if i.TimeDetail.WaitTime > j.TimeDetail.WaitTime {
+			f = 1
+		}
+		return f
 	})
 	d.P90WaitTime = sc.mu.allExecDetails[n*9/10].TimeDetail.WaitTime
 	d.MaxWaitTime = sc.mu.allExecDetails[n-1].TimeDetail.WaitTime
@@ -933,8 +945,14 @@ func (sc *StatementContext) CopTasksDetails() *CopTasksDetails {
 		if len(items) == 0 {
 			continue
 		}
-		slices.SortFunc(items, func(i, j backoffItem) bool {
-			return i.sleepTime < j.sleepTime
+		slices.SortFunc(items, func(i, j backoffItem) int {
+			f := 0
+			if i.sleepTime < j.sleepTime {
+				f = -1
+			} else if i.sleepTime > j.sleepTime {
+				f = 1
+			}
+			return f
 		})
 		n := len(items)
 		d.MaxBackoffAddress[backoff] = items[n-1].callee
